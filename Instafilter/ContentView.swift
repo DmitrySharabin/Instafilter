@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var filterIntensity = 0.5
     @State private var filterRadius = 100.0
     @State private var filterScale = 10.0
+    @State private var filterAngle = 180.0
     
     @State private var showingImagePicker = false
     @State private var inputImage: UIImage?
@@ -68,6 +69,14 @@ struct ContentView: View {
                                 .onChange(of: filterScale) { _ in applyProcessing() }
                         }
                     }
+                    
+                    if filterHasKey(kCIInputAngleKey) {
+                        HStack {
+                            Text("Angle")
+                            Slider(value: $filterAngle, in: 0...360)
+                                .onChange(of: filterAngle) { _ in applyProcessing() }
+                        }
+                    }
                 }
                 
                 HStack {
@@ -96,6 +105,13 @@ struct ContentView: View {
                 Button("Sepia Tone") { setFilter(CIFilter.sepiaTone()) }
                 Button("Unsharp Mask") { setFilter(CIFilter.unsharpMask()) }
                 Button("Vignette") { setFilter(CIFilter.vignette()) }
+                
+                Group {
+                    Button("Hue Adjust") { setFilter(CIFilter.hueAdjust()) }
+                    Button("Comic Effect") { setFilter(CIFilter.comicEffect()) }
+                    Button("Kaleidoscope") { setFilter(CIFilter.kaleidoscope()) }
+                }
+                
                 Button("Cancel", role: .cancel) { }
             }
         }
@@ -138,6 +154,10 @@ struct ContentView: View {
         
         if inputKeys.contains(kCIInputScaleKey) {
             currentFilter.setValue(filterScale, forKey: kCIInputScaleKey)
+        }
+        
+        if inputKeys.contains(kCIInputAngleKey) {
+            currentFilter.setValue(filterAngle, forKey: kCIInputAngleKey)
         }
         
         guard let outputImage = currentFilter.outputImage else { return }
