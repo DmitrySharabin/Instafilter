@@ -12,6 +12,8 @@ import SwiftUI
 struct ContentView: View {
     @State private var image: Image?
     @State private var filterIntensity = 0.5
+    @State private var filterRadius = 100.0
+    @State private var filterScale = 10.0
     
     @State private var showingImagePicker = false
     @State private var inputImage: UIImage?
@@ -37,16 +39,36 @@ struct ContentView: View {
                         .resizable()
                         .scaledToFit()
                 }
+                .padding(.bottom)
                 .onTapGesture {
                     showingImagePicker = true
                 }
                 
-                HStack {
-                    Text("Intensity")
-                    Slider(value: $filterIntensity)
-                        .onChange(of: filterIntensity) { _ in applyProcessing() }
+                Group {
+                    if filterHasKey(kCIInputIntensityKey) {
+                        HStack {
+                            Text("Intensity")
+                            Slider(value: $filterIntensity)
+                                .onChange(of: filterIntensity) { _ in applyProcessing() }
+                        }
+                    }
+                    
+                    if filterHasKey(kCIInputRadiusKey) {
+                        HStack {
+                            Text("Radius")
+                            Slider(value: $filterRadius, in: 1...200)
+                                .onChange(of: filterRadius) { _ in applyProcessing() }
+                        }
+                    }
+                    
+                    if filterHasKey(kCIInputScaleKey) {
+                        HStack {
+                            Text("Scale")
+                            Slider(value: $filterScale, in: 1...20)
+                                .onChange(of: filterScale) { _ in applyProcessing() }
+                        }
+                    }
                 }
-                .padding(.vertical)
                 
                 HStack {
                     Button("Change Filter") {
@@ -58,6 +80,7 @@ struct ContentView: View {
                     Button("Save", action: save)
                         .disabled(image == nil)
                 }
+                .padding(.top)
             }
             .padding([.horizontal, .bottom])
             .navigationTitle("Instafilter")
@@ -110,11 +133,11 @@ struct ContentView: View {
         }
         
         if inputKeys.contains(kCIInputRadiusKey) {
-            currentFilter.setValue(filterIntensity * 200, forKey: kCIInputRadiusKey)
+            currentFilter.setValue(filterRadius, forKey: kCIInputRadiusKey)
         }
         
         if inputKeys.contains(kCIInputScaleKey) {
-            currentFilter.setValue(filterIntensity * 10, forKey: kCIInputScaleKey)
+            currentFilter.setValue(filterScale, forKey: kCIInputScaleKey)
         }
         
         guard let outputImage = currentFilter.outputImage else { return }
@@ -129,6 +152,10 @@ struct ContentView: View {
     func setFilter(_ filter: CIFilter) {
         currentFilter = filter
         loadImage()
+    }
+    
+    func filterHasKey(_ key: String) -> Bool {
+        currentFilter.inputKeys.contains(key)
     }
 }
 
